@@ -103,6 +103,17 @@ echo "Building for $T -- with Armbian ${ARMBIAN_VERSION} -- $B"
 echo "Done!"
 
 cd "${C}"
+
+
+# temporary rename odroidc4/n2 to c4a and n2a until meson64 move completed
+U=${T}
+if [ "${T}" == "odroidc4" ]; then
+   T="odroidc4a"
+fi
+if [ "${T}" == "odroidn2" ]; then
+   T="odroidn2a"
+fi
+
 echo "Creating platform ${T} files"
 [[ -d ${T} ]] && rm -rf "${T}"
 mkdir -p "${T}"/u-boot
@@ -119,15 +130,19 @@ cp "${C}/audio-routing/${T}-asound.state" "${T}"/var/lib/alsa/asound.state
 cp "${C}/audio-routing/cards.json" "${T}"/volumio/app/plugins/audio_interface/alsa_controller
 
 # Keep a copy for later just in case
-cp "${A}/output/debs/linux-headers-${B}-${K}_${ARMBIAN_VERSION}"* "${C}"
+
+#cp "${A}/output/debs/linux-headers-${B}-${K}_${ARMBIAN_VERSION}"* "${C}"
+echo "${A}/output/debs/linux-dtb-${B}-${K}_${ARMBIAN_VERSION}"*.deb "${T}"
+echo "${A}/output/debs/linux-image-${B}-${K}_${ARMBIAN_VERSION}"*.deb "${T}"
+echo "${A}/output/debs/linux-u-boot-${U}-${B}_${ARMBIAN_VERSION}"*.deb "${T}"
+echo "${A}/output/debs/armbian-firmware_${ARMBIAN_VERSION}"*.deb "${T}"
 
 dpkg-deb -x "${A}/output/debs/linux-dtb-${B}-${K}_${ARMBIAN_VERSION}"*.deb "${T}"
 dpkg-deb -x "${A}/output/debs/linux-image-${B}-${K}_${ARMBIAN_VERSION}"*.deb "${T}"
-dpkg-deb -x "${A}/output/debs/linux-u-boot-${T}-${B}_${ARMBIAN_VERSION}"*.deb "${T}"
+dpkg-deb -x "${A}/output/debs/linux-u-boot-${U}-${B}_${ARMBIAN_VERSION}"*.deb "${T}"
 dpkg-deb -x "${A}/output/debs/armbian-firmware_${ARMBIAN_VERSION}"*.deb "${T}"
 
-# Copy bootloader stuff
-cp "${T}"/usr/lib/linux-u-boot-${B}-${T}*/u-boot.bin "${T}/u-boot/"
+cp "${T}"/usr/lib/linux-u-boot-${B}-${U}*/u-boot.bin "${T}/u-boot/"
 cp "${T}"/usr/lib/u-boot/platform_install.sh "${T}/u-boot/"
 
 mv "${T}"/boot/dtb* "${T}"/boot/dtb
