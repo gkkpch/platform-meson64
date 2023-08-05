@@ -14,5 +14,5 @@ They have specific Volumio settings in armbianEnv.txt (read by the generic Armbi
 |||Created corresponding audio routing settings with a modified,  board-specific asound.state
 |20230805|gkkpch|Added support for Odroid C4 and N2/N2+
 |||Refactored platform-radxa to platform-meson64
-
+|||Fixed mkplatform.sh text string, to reflect meson64, not just radxa
 

@@ -22,7 +22,7 @@ DELAY=3 # Number of seconds to display results
 while true; do
   clear
   cat << _EOF_
-Please select the Radxa Zero board you wish to build the platform files for:
+Please select the Amlogic Meson64 board you wish to build the platform files for:
 1. Odroid C4
 2. Odroid N2
 3. Radxa Zero
@@ -31,8 +31,8 @@ Please select the Radxa Zero board you wish to build the platform files for:
 
 _EOF_
 
-  read -p "Enter selection [1-3] > "
-  if [[ $REPLY =~ ^[1-3]$ ]]; then
+  read -p "Enter selection [1-5] > "
+  if [[ $REPLY =~ ^[1-5]$ ]]; then
     case $REPLY in
       1)
         T="odroidc4"
