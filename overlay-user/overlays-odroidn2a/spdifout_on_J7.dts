@@ -1,0 +1,13 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+	fragment@0 {
+		// SPDIF Output on GPIOA_11 pin
+		target = <&spdifout>;
+		__overlay__ {
+			pinctrl-0 = <&spdif_out_a11_pins>;
+			pinctrl-names = "default";
+		};
+	};
+};

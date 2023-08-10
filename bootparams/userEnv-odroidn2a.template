@@ -1,0 +1,9 @@
+# This file can be used to (temporarily) overwrite armbianEnv.txt variables
+verbose=7
+
+# The default SPDIF signal is on the 40-pin header, pin 7 (GPIOA_13), pin 8 is to be used for GND.
+#
+# Uncomment the following line in case you wish to use SPDIF on the J7 header (GPIOA_11) instead.
+# Header J7: use pin1 for GND, pin 2 for SPDIF 
+
+#user_overlays=spdifout_on_J7

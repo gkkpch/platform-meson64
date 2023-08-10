@@ -15,4 +15,4 @@ They have specific Volumio settings in armbianEnv.txt (read by the generic Armbi
 |20230805|gkkpch|Added support for Odroid C4 and N2/N2+
 |||Refactored platform-radxa to platform-meson64
 |||Fixed mkplatform.sh text string, to reflect meson64, not just radxa
-
+|20230810|gkkpch|Enabled HDMI/Lineout/SPDIF output options

@@ -63,10 +63,10 @@ done
 
 # Make sure we grab the right version
 ARMBIAN_VERSION=$(cat ${A}/VERSION)
+export INSTALL_MOD_STRIP=1
 
 # Custom patches
 echo "Adding custom patches"
-ls "${C}/patches/"
 
 mkdir -p "${A}"/userpatches/kernel/"${K}"-"${B}"/
 rm -rf "${A}"/userpatches/kernel/"${K}"-"${B}"/*.patch
@@ -96,7 +96,7 @@ cd ${A}
 ARMBIAN_HASH=$(git rev-parse --short HEAD)
 echo "Building for $T -- with Armbian ${ARMBIAN_VERSION} -- $B"
 
-./compile.sh build BOARD=${T} BRANCH=${B} CLEAN_LEVEL=images,debs RELEASE=buster BUILD_ONLY=kernel,u-boot,armbian-firmware,armbian-bsp BUILD_DESKTOP=no BUILD_MINIMAL=yes EXTERNAL=no BUILD_KSRC=no EXPERT=yes "${armbian_extra_flags[@]}"
+./compile.sh build BOARD=${T} BRANCH=${B} CLEAN_LEVEL=images,debs,make-kernel RELEASE=buster BUILD_ONLY=kernel,u-boot,armbian-firmware,armbian-bsp KERNEL_CONFIGURE=no BUILD_DESKTOP=no BUILD_MINIMAL=yes EXTERNAL=no BUILD_KSRC=no EXPERT=yes "${armbian_extra_flags[@]}"
 
 #./compile.sh BOARD=${T} BRANCH=${B} kernel-patch 
 
@@ -132,11 +132,6 @@ cp "${C}/audio-routing/cards.json" "${T}"/volumio/app/plugins/audio_interface/al
 # Keep a copy for later just in case
 
 #cp "${A}/output/debs/linux-headers-${B}-${K}_${ARMBIAN_VERSION}"* "${C}"
-echo "${A}/output/debs/linux-dtb-${B}-${K}_${ARMBIAN_VERSION}"*.deb "${T}"
-echo "${A}/output/debs/linux-image-${B}-${K}_${ARMBIAN_VERSION}"*.deb "${T}"
-echo "${A}/output/debs/linux-u-boot-${U}-${B}_${ARMBIAN_VERSION}"*.deb "${T}"
-echo "${A}/output/debs/armbian-firmware_${ARMBIAN_VERSION}"*.deb "${T}"
-
 dpkg-deb -x "${A}/output/debs/linux-dtb-${B}-${K}_${ARMBIAN_VERSION}"*.deb "${T}"
 dpkg-deb -x "${A}/output/debs/linux-image-${B}-${K}_${ARMBIAN_VERSION}"*.deb "${T}"
 dpkg-deb -x "${A}/output/debs/linux-u-boot-${U}-${B}_${ARMBIAN_VERSION}"*.deb "${T}"
@@ -164,14 +159,23 @@ for dts in "${C}"/overlay-user/overlays-"${T}"/*.dts; do
 done
 
 # Copy and compile boot script
-cp "${A}"/config/bootscripts/boot-"${K}".cmd "${T}"/boot/boot.cmd
+if [ -f "${C}/bootparams/boot-${T}.cmd" ]; then
+  cp "${C}/bootparams/boot-${T}.cmd" "${T}"/boot/boot.cmd
+else
+  cp "${A}"/config/bootscripts/boot-"${K}".cmd "${T}"/boot/boot.cmd
+fi
 mkimage -C none -A arm -T script -d "${T}"/boot/boot.cmd "${T}"/boot/boot.scr
+
+# Copy userEnv.txt template
+if [ -f "${C}/bootparams/userEnv-${T}.template" ]; then
+ cp "${C}/bootparams/userEnv-${T}.template" "${T}"/boot/userEnv.template
+fi
 
 # Signal mainline kernel
 touch "${T}"/boot/.next
 
 # Prepare boot parameters
-cp "${C}"/bootparams/"${T}".armbianEnv.txt "${T}"/boot/armbianEnv.txt
+cp "${C}"/bootparams/"armbianEnv-${T}".txt "${T}"/boot/armbianEnv.txt
 
 echo "Creating device tarball.."
 tar cJf "${T}_${B}.tar.xz" "$T"
