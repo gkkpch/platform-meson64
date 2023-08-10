@@ -17,3 +17,4 @@ They have specific Volumio settings in armbianEnv.txt (read by the generic Armbi
 |||Fixed mkplatform.sh text string, to reflect meson64, not just radxa
 |20230810|gkkpch|Enabled HDMI/Lineout/SPDIF output options
 |||Added support for Ugreen BT adapter, USB_DEVICE(0x0b05, 0x17dc)
+|||Fixed an issue with missing firmware for RTL8761BUV

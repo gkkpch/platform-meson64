@@ -143,6 +143,9 @@ cp "${T}"/usr/lib/u-boot/platform_install.sh "${T}/u-boot/"
 mv "${T}"/boot/dtb* "${T}"/boot/dtb
 mv "${T}"/boot/vmlinuz* "${T}"/boot/Image
 
+# Copy any additional firmware
+cp -r "${C}"/firmware "${T}"/lib
+
 # Clean up unneeded parts
 rm -rf "${T}/lib/firmware/.git"
 rm -rf "${T:?}/usr" "${T:?}/etc"
