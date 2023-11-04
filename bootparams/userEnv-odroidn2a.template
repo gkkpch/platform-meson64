@@ -3,8 +3,6 @@ verbose=7
 
 # The default SPDIF signal is on the 40-pin header, pin 7 (GPIOA_13), pin 8 is to be used for GND.
 #
-# Add spdifout_on_J7 in case you wish to use SPDIF on the J7 header (GPIOA_11) instead.
 # Header J7: use pin1 for GND, pin 2 for SPDIF 
-
-user_overlays=enable_i2c3
-#user_overlays=enable_i2c3 spdifout_on_J7
+# Uncomment the following line in case you wish to use SPDIF on the J7 header (GPIOA_11) instead.
+#user_overlays=meson64_odroidn2_enable_i2c3 spdifout_on_J7

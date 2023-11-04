@@ -196,6 +196,7 @@ dpkg-deb -x "${A}/output/debs/linux-u-boot-${U}-${B}_${ARMBIAN_VERSION}"*.deb "$
 echo "Using a current Firmware (armbian-firmware_${F}_all.deb)"
 wget -O "${C}"/firmware/armbian-firmware_${F}_all.deb https://armbian.systemonachip.net/apt/pool/main/a/armbian-firmware/armbian-firmware_${F}_all.deb 
 dpkg-deb -x "${C}"/firmware/armbian-firmware_${F}_all.deb "${T}"
+rm "${C}"/firmware/armbian-firmware_${F}_all.deb
 
 cp "${T}"/usr/lib/linux-u-boot-${B}-${U}*/u-boot.bin "${T}/u-boot/"
 cp "${T}"/usr/lib/u-boot/platform_install.sh "${T}/u-boot/"
