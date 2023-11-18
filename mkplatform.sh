@@ -10,8 +10,7 @@ else
 fi
 
 C=$(pwd)
-A=../armbian
-P="meson64"
+A=../armbian-meson64
 B="current"
 K="meson64"
 F="23.02.2"
@@ -127,10 +126,15 @@ fi
 
 # Select specific Kernel and/or U-Boot version
 rm -rf "${A}"/userpatches/lib.config
-if [ -e "${C}"/kernel-ver/"${P}".config ]
+if [ -e "${C}"/kernel-ver/"${K}".config ]
 then
   echo "Copy specific kernel/uboot version config"
-  cp "${C}"/kernel-ver/"${P}"*.config "${A}"/userpatches/lib.config
+  cp "${C}"/kernel-ver/"${K}"*.config "${A}"/userpatches/lib.config
+fi
+
+if [ -d "${A}"/output/debs ]; then
+  echo "Cleaning previous .deb builds"
+  rm "${A}"/output/debs/*
 fi
 
 cd ${A}
@@ -140,13 +144,25 @@ echo "Building for $T -- with Armbian ${ARMBIAN_VERSION} -- $B"
 ./compile.sh ARTIFACT_IGNORE_CACHE=yes BOARD=${T} BRANCH=${B} uboot 
 
 if [ $PATCH == yes ]; then
+
   ./compile.sh ARTIFACT_IGNORE_CACHE=yes BOARD=${T} BRANCH=${B} kernel-patch 
-fi
-if [ $CONFIGURE == yes ]; then
-  ./compile.sh ARTIFACT_IGNORE_CACHE=yes BOARD=${T} BRANCH=${B} kernel-configure 
+# Note: armbian patch files are applied in alphabetic order!!!
+# To make sure that user patches are applied after Armbian's own patches, use a unique pre-fix"
+  if [ -f "${A}"/output/patch/kernel-"${K}"-"${B}".patch ]; then
+    cp "${A}"/output/patch/kernel-"${K}"-"${B}".patch "${C}"/patches/"${PATCH_PREFIX}"-kernel-"${K}"-"${B}".patch
+    cp "${C}"/patches/"${PATCH_PREFIX}"-kernel-"${K}"-"${B}".patch "${A}"/userpatches/kernel/"${K}"-"${B}"/
+    rm "${A}"/output/patch/kernel-"${K}"-"${B}".patch
+  fi
 fi
 
-./compile.sh REPOSITORY_INSTALL=armbian-firmware CLEAN_LEVEL=images,debs,make-kernel ARTIFACT_IGNORE_CACHE=yes BOARD=${T} BRANCH=${B} kernel
+if [ $CONFIGURE == yes ]; then
+  ./compile.sh ARTIFACT_IGNORE_CACHE=yes BOARD=${T} BRANCH=${B} kernel-config 
+  cp "${A}"/userpatches/linux-"${K}"-"${B}".config "${C}"/kernel-config/
+fi
+
+./compile.sh CLEAN_LEVEL=images,debs,make-kernel ARTIFACT_IGNORE_CACHE=yes BOARD=${T} BRANCH=${B} kernel
+
+./compile.sh ARTIFACT_IGNORE_CACHE=yes BOARD=${T} BRANCH=${B} firmware 
 
 echo "Done!"
 
@@ -171,7 +187,9 @@ mkdir -p "${T}"/var/lib/alsa
 mkdir -p "${T}"/volumio/app/plugins/audio_interface/alsa_controller
 
 # Copy asound.state
-cp "${C}/audio-routing/${T}-asound.state" "${T}"/var/lib/alsa/asound.state
+if [ -f "${C}/audio-routing/${T}-asound.state" ]; then
+  cp "${C}/audio-routing/${T}-asound.state" "${T}"/var/lib/alsa/asound.state
+fi
 
 # Copy radxa card profiles
 cp "${C}/audio-routing/cards.json" "${T}"/volumio/app/plugins/audio_interface/alsa_controller
@@ -186,17 +204,11 @@ echo "${A}/output/debs/linux-image-${B}-${K}_${ARMBIAN_VERSION}"*.deb
 dpkg-deb -x "${A}/output/debs/linux-image-${B}-${K}_${ARMBIAN_VERSION}"*.deb "${T}"
 echo "${A}/output/debs/linux-u-boot-${U}-${B}_${ARMBIAN_VERSION}"*.deb
 dpkg-deb -x "${A}/output/debs/linux-u-boot-${U}-${B}_${ARMBIAN_VERSION}"*.deb "${T}"
-#echo "${A}/output/debs/armbian-firmware_${ARMBIAN_VERSION}"*.deb
-#dpkg-deb -x "${A}/output/debs/armbian-firmware_${ARMBIAN_VERSION}"*.deb "${T}"
-
-# The stepped "compile.sh" approach does not produce an armbian firmware .deb package
-# Just copy it straight from the Armbian APT repo 
-# (https://armbian.systemonachip.net/apt/pool/main/a/armbian-firmware/)
-
-echo "Using a current Firmware (armbian-firmware_${F}_all.deb)"
-wget -O "${C}"/firmware/armbian-firmware_${F}_all.deb https://armbian.systemonachip.net/apt/pool/main/a/armbian-firmware/armbian-firmware_${F}_all.deb 
-dpkg-deb -x "${C}"/firmware/armbian-firmware_${F}_all.deb "${T}"
-rm "${C}"/firmware/armbian-firmware_${F}_all.deb
+echo "${A}/output/debs/armbian-firmware_${ARMBIAN_VERSION}"*.deb
+dpkg-deb -x "${A}/output/debs/armbian-firmware_${ARMBIAN_VERSION}"*.deb "${T}"
+echo "Remove unused firmware to save valuable space"
+rm -r "${T}"/lib/firmware/qcom
+rm "${T}"/lib/firmware/dvb*
 
 cp "${T}"/usr/lib/linux-u-boot-${B}-${U}*/u-boot.bin "${T}/u-boot/"
 cp "${T}"/usr/lib/u-boot/platform_install.sh "${T}/u-boot/"
@@ -223,23 +235,31 @@ for dts in "${C}"/overlay-user/overlays-"${T}"/*.dts; do
 done
 
 # Copy and compile boot script
-if [ -f "${C}/bootparams/boot-${T}.cmd" ]; then
-  cp "${C}/bootparams/boot-${T}.cmd" "${T}"/boot/boot.cmd
+if [ -f "${C}"/bootparams/boot-"${T}".cmd ]; then
+  cp "${C}"/bootparams/boot-"${T}".cmd "${T}"/boot/boot.cmd
 else
   cp "${A}"/config/bootscripts/boot-"${K}".cmd "${T}"/boot/boot.cmd
 fi
 mkimage -C none -A arm -T script -d "${T}"/boot/boot.cmd "${T}"/boot/boot.scr
 
 # Copy userEnv.txt template
-if [ -f "${C}/bootparams/userEnv-${T}.template" ]; then
- cp "${C}/bootparams/userEnv-${T}.template" "${T}"/boot/userEnv.template
+if [ -f "${C}"/bootparams/userEnv-"${T}".template ]; then
+ cp "${C}"/bootparams/userEnv-"${T}".template "${T}"/boot/userEnv.template
 fi
 
 # Signal mainline kernel
 touch "${T}"/boot/.next
 
 # Prepare boot parameters
-cp "${C}"/bootparams/"armbianEnv-${T}".txt "${T}"/boot/armbianEnv.txt
+cp "${C}"/bootparams/armbianEnv-"${T}".txt "${T}"/boot/armbianEnv.txt
+
+
+# Signal mainline kernel
+touch "${T}"/boot/.next
+
+# Prepare boot parameters
+ls 
+cp "${C}"/bootparams/armbianEnv-"${T}".txt "${T}"/boot/armbianEnv.txt
 
 echo "Creating device tarball.."
 tar cJf "${T}_${B}.tar.xz" "$T"
