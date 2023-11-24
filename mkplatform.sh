@@ -10,11 +10,12 @@ else
 fi
 
 C=$(pwd)
-A=../armbian-meson64
+A=../../armbian-master
 B="current"
 K="meson64"
 F="23.02.2"
 
+PATH_PREFIX="volumio-"
 
 DELAY=2 # Number of seconds to display results
 while true; do
@@ -66,11 +67,11 @@ while true; do
   if [[ $REPLY =~ ^[yn]$ ]]; then
     case $REPLY in
       y)
-        PATCH="yes"
+        KERNELPATCH="yes"
         break
         ;; 
       n)
-        PATCH="no"
+        KERNELPATCH="no"
         break
         ;; 
 
@@ -86,11 +87,11 @@ while true; do
   if [[ $REPLY =~ ^[yn]$ ]]; then
     case $REPLY in
       y)
-        CONFIGURE="yes"
+        KERNELCONFIGURE="yes"
         break
         ;; 
       n)
-        CONFIGURE="no"
+        KERNELCONFIGURE="no"
         break
         ;; 
 
@@ -134,7 +135,7 @@ fi
 
 if [ -d "${A}"/output/debs ]; then
   echo "Cleaning previous .deb builds"
-  rm "${A}"/output/debs/*
+  rm -rf "${A}"/output/debs/*
 fi
 
 cd ${A}
@@ -143,21 +144,22 @@ echo "Building for $T -- with Armbian ${ARMBIAN_VERSION} -- $B"
 
 ./compile.sh ARTIFACT_IGNORE_CACHE=yes BOARD=${T} BRANCH=${B} uboot 
 
-if [ $PATCH == yes ]; then
+if [ $KERNELPATCH == yes ]; then
 
   ./compile.sh ARTIFACT_IGNORE_CACHE=yes BOARD=${T} BRANCH=${B} kernel-patch 
-# Note: armbian patch files are applied in alphabetic order!!!
-# To make sure that user patches are applied after Armbian's own patches, use a unique pre-fix"
-  if [ -f "${A}"/output/patch/kernel-"${K}"-"${B}".patch ]; then
-    cp "${A}"/output/patch/kernel-"${K}"-"${B}".patch "${C}"/patches/"${PATCH_PREFIX}"-kernel-"${K}"-"${B}".patch
-    cp "${C}"/patches/"${PATCH_PREFIX}"-kernel-"${K}"-"${B}".patch "${A}"/userpatches/kernel/"${K}"-"${B}"/
-    rm "${A}"/output/patch/kernel-"${K}"-"${B}".patch
+
+  # Note: armbian patch files are applied in alphabetic order!!!
+  # To make sure that user patches are applied after Armbian's own patches, use a unique pre-fix"
+  if [ -f ./output/patch/kernel-"${K}"-"${B}".patch ]; then
+    cp ./output/patch/kernel-"${K}"-"${B}".patch "${C}"/patches/"${PATCH_PREFIX}"-kernel-"${K}"-"${B}".patch
+    cp "${C}"/patches/"${PATCH_PREFIX}"-kernel-"${K}"-"${B}".patch ./userpatches/kernel/"${K}"-"${B}"/
+    rm ./output/patch/kernel-"${K}"-"${B}".patch
   fi
 fi
 
-if [ $CONFIGURE == yes ]; then
+if [ $KERNELCONFIGURE == yes ]; then
   ./compile.sh ARTIFACT_IGNORE_CACHE=yes BOARD=${T} BRANCH=${B} kernel-config 
-  cp "${A}"/userpatches/linux-"${K}"-"${B}".config "${C}"/kernel-config/
+  cp ./userpatches/linux-"${K}"-"${B}".config "${C}"/kernel-config/
 fi
 
 ./compile.sh CLEAN_LEVEL=images,debs,make-kernel ARTIFACT_IGNORE_CACHE=yes BOARD=${T} BRANCH=${B} kernel
@@ -258,7 +260,6 @@ cp "${C}"/bootparams/armbianEnv-"${T}".txt "${T}"/boot/armbianEnv.txt
 touch "${T}"/boot/.next
 
 # Prepare boot parameters
-ls 
 cp "${C}"/bootparams/armbianEnv-"${T}".txt "${T}"/boot/armbianEnv.txt
 
 echo "Creating device tarball.."

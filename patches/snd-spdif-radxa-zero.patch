@@ -1,22 +1,22 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Igor Pecovnik <igor.pecovnik@****l.com>
-Date: Mon, 12 Jun 2023 15:01:37 +0200
+From: John Doe <john.doe@somewhere.on.planet>
+Date: Thu, 23 Nov 2023 21:49:56 +0100
 Subject: Patching kernel meson64 files
  arch/arm64/boot/dts/amlogic/meson-g12a-radxa-zero.dts
 
-Signed-off-by: Igor Pecovnik <igor.pecovnik@****l.com>
+Signed-off-by: John Doe <john.doe@somewhere.on.planet>
 ---
  arch/arm64/boot/dts/amlogic/meson-g12a-radxa-zero.dts | 45 +++++++++-
  1 file changed, 44 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm64/boot/dts/amlogic/meson-g12a-radxa-zero.dts b/arch/arm64/boot/dts/amlogic/meson-g12a-radxa-zero.dts
-index 4e7781f87867..1764c2dc689a 100644
+index 796a7ec617d6..559a4de4c07d 100644
 --- a/arch/arm64/boot/dts/amlogic/meson-g12a-radxa-zero.dts
 +++ b/arch/arm64/boot/dts/amlogic/meson-g12a-radxa-zero.dts
-@@ -15,10 +15,17 @@ / {
- 
- 	aliases {
- 		serial0 = &uart_AO;
+@@ -27,10 +27,17 @@ aliases {
+ 		spi0 = &spicc0;
+ 		spi1 = &spicc1;
+ 		spi2 = &spifc;
  	};
  
 +	spdif_dit: audio-codec-1 {
@@ -31,7 +31,7 @@ index 4e7781f87867..1764c2dc689a 100644
  	};
  
  	memory@0 {
-@@ -142,11 +149,14 @@ sound {
+@@ -154,11 +161,14 @@ sound {
  		model = "RADXA-ZERO";
  		audio-aux-devs = <&tdmout_b>;
  		audio-routing = "TDMOUT_B IN 0", "FRDDR_A OUT 1",
@@ -47,7 +47,7 @@ index 4e7781f87867..1764c2dc689a 100644
  				  <&clkc CLKID_MPLL0>,
  				  <&clkc CLKID_MPLL1>;
  		assigned-clock-parents = <0>, <0>, <0>;
-@@ -180,11 +190,34 @@ dai-link-3 {
+@@ -192,11 +202,34 @@ dai-link-3 {
  			codec {
  				sound-dai = <&tohdmitx TOHDMITX_I2S_IN_B>;
  			};
@@ -82,7 +82,7 @@ index 4e7781f87867..1764c2dc689a 100644
  			codec {
  				sound-dai = <&hdmi_tx>;
  			};
-@@ -404,10 +437,20 @@ &sd_emmc_c {
+@@ -416,10 +449,20 @@ &sd_emmc_c {
  	mmc-pwrseq = <&emmc_pwrseq>;
  	vmmc-supply = <&vcc_3v3>;
  	vqmmc-supply = <&vcc_1v8>;
