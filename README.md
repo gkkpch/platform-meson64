@@ -18,3 +18,4 @@ They have specific Volumio settings in armbianEnv.txt (read by the generic Armbi
 |20230810|gkkpch|Enabled HDMI/Lineout/SPDIF output options
 |||Added support for Ugreen BT adapter, USB_DEVICE(0x0b05, 0x17dc)
 |||Fixed an issue with missing firmware for RTL8761BUV
+20240409||All armbianEnv.txt templates now use 'uuidconfig' instead of 'bootconfig'
